@@ -3,10 +3,14 @@ from flask import Flask, render_template, request
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 
+# -----------------------------
+# App Configuration
+# -----------------------------
+
 # Get current folder path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Tell Flask exactly where templates folder is
+# Tell Flask where templates folder is
 app = Flask(
     __name__,
     template_folder=os.path.join(BASE_DIR, "templates")
@@ -15,6 +19,7 @@ app = Flask(
 # -----------------------------
 # Dataset
 # -----------------------------
+
 data = {
     'Am_I_Hungry': ['Yes', 'Yes', 'Yes', 'No', 'No'],
     'Is_It_Weekend': ['Yes', 'No', 'Yes', 'Yes', 'No'],
@@ -26,10 +31,14 @@ df = pd.DataFrame(data)
 # Encode Yes/No → 1/0
 df = df.replace({'Yes': 1, 'No': 0})
 
+# Features & Target
 X = df[['Am_I_Hungry', 'Is_It_Weekend']]
 y = df['Shall_I_Eat_Pizza']
 
-# Train model
+# -----------------------------
+# Train Model
+# -----------------------------
+
 model = DecisionTreeClassifier(
     criterion='entropy',
     random_state=42,
@@ -38,10 +47,10 @@ model = DecisionTreeClassifier(
 
 model.fit(X, y)
 
-
 # -----------------------------
 # Routes
 # -----------------------------
+
 @app.route("/", methods=["GET", "POST"])
 def home():
 
@@ -71,9 +80,13 @@ def home():
 
     return render_template("index.html", result=result)
 
+# -----------------------------
+# Run App (Local + Render)
+# -----------------------------
 
-# -----------------------------
-# Run App
-# -----------------------------
 if __name__ == "__main__":
-    app.run()
+
+    # Get port from Render or use 5000 locally
+    port = int(os.environ.get("PORT", 5000))
+
+    app.run(host="0.0.0.0", port=port)
