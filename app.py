@@ -1,46 +1,42 @@
 import os
 from flask import Flask, render_template, request
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeRegressor
+
 
 # -----------------------------
 # App Configuration
 # -----------------------------
 
-# Get current folder path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Tell Flask where templates folder is
 app = Flask(
     __name__,
     template_folder=os.path.join(BASE_DIR, "templates")
 )
 
 # -----------------------------
-# Dataset
+# Dataset (Numeric Target for Regression)
 # -----------------------------
 
+# Target now represents "Pizza Desire %" (0–100)
 data = {
-    'Am_I_Hungry': ['Yes', 'Yes', 'Yes', 'No', 'No'],
-    'Is_It_Weekend': ['Yes', 'No', 'Yes', 'Yes', 'No'],
-    'Shall_I_Eat_Pizza': ['Yes', 'Yes', 'Yes', 'No', 'No']
+    'Am_I_Hungry': [1, 1, 1, 0, 0],
+    'Is_It_Weekend': [1, 0, 1, 1, 0],
+    'Pizza_Score': [90, 75, 95, 40, 10]   # Continuous values ✅
 }
 
 df = pd.DataFrame(data)
 
-# Encode Yes/No → 1/0
-df = df.replace({'Yes': 1, 'No': 0})
-
 # Features & Target
 X = df[['Am_I_Hungry', 'Is_It_Weekend']]
-y = df['Shall_I_Eat_Pizza']
+y = df['Pizza_Score']
 
 # -----------------------------
-# Train Model
+# Train Regression Model
 # -----------------------------
 
-model = DecisionTreeClassifier(
-    criterion='entropy',
+model = DecisionTreeRegressor(
     random_state=42,
     max_depth=3
 )
@@ -73,10 +69,7 @@ def home():
 
         pred = model.predict(test)[0]
 
-        if pred == 1:
-            result = "Yes, You Should Eat Pizza 🍕"
-        else:
-            result = "No, Better Avoid Pizza ❌"
+        result = f"Pizza Desire Score: {pred:.1f}% 🍕"
 
     return render_template("index.html", result=result)
 
@@ -86,7 +79,6 @@ def home():
 
 if __name__ == "__main__":
 
-    # Get port from Render or use 5000 locally
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port)
